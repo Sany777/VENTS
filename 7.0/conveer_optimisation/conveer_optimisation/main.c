@@ -21,7 +21,7 @@ volatile  _Bool  timer_run   = OFF;
 volatile unsigned  int count = 0;
 volatile unsigned  int vcount = 0;
 #define DIGITS_MAX             6
-signed char digits_numbers [DIGITS_MAX] = {0,0,0,0,0,0};  
+char digits_numbers [DIGITS_MAX] = {0,0,0,0,0,0};  
 signed int  sek		 = 0;
 signed int  min		 = 0;
 signed int  hour	 = 0;
@@ -67,7 +67,7 @@ int  get_button(void);
 void port_ini (void);
 void timer_init (void);
 void SPI (void);
-char segchar (int seg);
+char segchar (char seg);
 
 
 
@@ -79,10 +79,11 @@ char segchar (int seg);
 		sei();
 																		
 	while (1)
-	{												
+	{	
+		direction(get_button());											
 		get_digits_numbers();
 		SPI();
-		direction(get_button());
+		
 	}																		
 }
 
@@ -92,11 +93,11 @@ char segchar (int seg);
 	
 	
 
-char segchar (int seg) {
+char segchar (char seg) {
 	switch(seg)
 	{
 		char res = 0;
-		case 1: res = 0b000000110; break;
+		case 1: res = 0b00000110; break;
 		case 2: res = 0b01011011; break;
 		case 3: res = 0b01001111; break;
 		case 4: res = 0b01100110; break;
@@ -121,7 +122,7 @@ void SPI (void) {
 	for (int digit = 0; digit<DIGITS_MAX; digit++) {
 		if (voltage_f) {
 			byte = segchar(digits_numbers[digit]);
-			if (timing == 1 &&((digit == 0 && (min || hour)) || (digit == 1 && hour))){   // point blink
+			if (timing == 0 &&((digit == 0 && (min || hour)) || (digit == 1 && hour))){   // point blink
 						byte|=(1<<7);
 			}
 			else if (conveer == ON && digit == conveer_spi){
