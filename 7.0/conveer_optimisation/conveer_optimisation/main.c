@@ -83,11 +83,6 @@ char segchar (int seg);
 		get_digits_numbers();
 		SPI();
 		direction(get_button());
-		if (signale == ON) {
-			if (min==0 && hour==0 && sek<6){
-				signale = OFF;
-			}
-		}
 	}																		
 }
 
@@ -126,7 +121,7 @@ void SPI (void) {
 	for (int digit = 0; digit<DIGITS_MAX; digit++) {
 		if (voltage_f) {
 			byte = segchar(digits_numbers[digit]);
-			if (timing == 1 &&((digit == 0 && min>0) || (digit == 1 && hour>0))){   // point blink
+			if (timing == 1 &&((digit == 0 && (min || hour)) || (digit == 1 && hour))){   // point blink
 						byte|=(1<<7);
 			}
 			else if (conveer == ON && digit == conveer_spi){
@@ -298,15 +293,14 @@ void port_ini (void){
 
 
 ISR (TIMER2_OVF_vect){
-	if (timer_run && voltage_f){
-		timing++;
+	if (timer_run){
+		if (voltage_f) timing++;
 		if (min==0 && hour==0 && sek==10 && signal_allowed) signale = ON;
+		if (signale == ON && min==0 && hour==0 && sek<6) signale = OFF;
 		if (min == 0 && hour == 0 && sek == 0){
-			 if (timing>0 && timing<4){
-				conveer = ON;
-			}
-			 else if (timing < 45){
-				conveer = OFF;
+			 if (timing<3)conveer = ON;
+			 else if (timing < 44){
+				if (conveer == ON) conveer = OFF;
 			}
 			 else {
 				read_m();
