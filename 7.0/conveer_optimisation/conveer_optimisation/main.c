@@ -19,6 +19,7 @@
 _Bool whole_sek			     = 0;
 volatile  _Bool  timer_run   = OFF;
 volatile unsigned  int count = 0;
+volatile unsigned  int vcount = 0;
 #define DIGITS_MAX             6
 signed char digits_numbers [DIGITS_MAX] = {0,0,0,0,0,0};  
 signed int  sek		 = 0;
@@ -33,11 +34,15 @@ enum Button_press {
 	unpress,
 	press_stop,             
 	press_start,
-	press_set,
-	voltage_busy,
+	press_set
+};
+enum Menu_item {
+	ready,
+	read_setup,
 	editing_sec,
 	editing_min,
-	editing_hour
+	editing_hour,
+	write_setup
 };
 
 int active_button = unpress;                    // state button press
@@ -79,12 +84,9 @@ char segchar (int seg);
 		SPI();
 		direction(get_button());
 		if (signale == ON) {
-			if (min==0 && hour==0 && sek<9){
+			if (min==0 && hour==0 && sek<6){
 				signale = OFF;
 			}
-		}
-		if (timing == 0 || conveer == ON){
-			conveer =  OFF;
 		}
 	}																		
 }
@@ -98,17 +100,18 @@ char segchar (int seg);
 char segchar (int seg) {
 	switch(seg)
 	{
-		case 1: return 0b000000110;
-		case 2: return 0b01011011;
-		case 3: return 0b01001111;
-		case 4: return 0b01100110;
-		case 5: return 0b01101101;
-		case 6: return 0b01111101;
-		case 7: return 0b00000111;
-		case 8: return 0b01111111;
-		case 9: return 0b01101111;
-		case 0: return 0b00111111;
-		default: return 0;
+		char res = 0;
+		case 1: res = 0b000000110; break;
+		case 2: res = 0b01011011; break;
+		case 3: res = 0b01001111; break;
+		case 4: res = 0b01100110; break;
+		case 5: res = 0b01101101; break;
+		case 6: res = 0b01111101; break;
+		case 7: res = 0b00000111; break;
+		case 8: res = 0b01111111; break;
+		case 9: res = 0b01101111; break;
+		case 0: res = 0b00111111; break;
+		return res;
 	}
 }
 
@@ -122,7 +125,7 @@ void SPI (void) {
 	char byte = 0;
 	for (int digit = 0; digit<DIGITS_MAX; digit++) {
 		if (voltage_f) {
-			char byte = segchar(digits_numbers[digit]);
+			byte = segchar(digits_numbers[digit]);
 			if (timing == 1 &&((digit == 0 && min>0) || (digit == 1 && hour>0))){   // point blink
 						byte|=(1<<7);
 			}
@@ -135,7 +138,6 @@ void SPI (void) {
 			else if (blink == ON && digit == blink_spi){
 						byte|=(1<<7);
 			} 
-
 		}
 		else {
 			 if (digit == 3) byte = 0X3F;          // write "OFF"
@@ -230,9 +232,10 @@ void read_m (void){
 	sek = EEPROM_read(0x01);
 	min = EEPROM_read(0x02);
 	hour = EEPROM_read(0x03);
-	if (min || hour) signal_allowed = 1;
+	if (min  || hour) signal_allowed = 1;
 	else signal_allowed = 0;
 }
+
 
 
 
@@ -339,22 +342,23 @@ ISR (TIMER2_OVF_vect){
 	
 			
 			
-int get_button () {	
+int get_button () {
 	int result = 0;
-	if (active_button == press_set || active_button == unpress){
-		if (voltage_f != voltage_state){
-			if (active_button == unpress) active_button = voltage_busy;
-				if (count<RESPONSE) count++;
-				else voltage_f = !voltage_f; 
+	if ( voltage_f != voltage_state ){
+		if (vcount<RESPONSE*2) vcount++;
+		else {
+			voltage_f = voltage_state; 
+			vcount = 0;
 		}
-		else if (count > 0) count--;
 	}
-	else if (active_button == press_set || active_button == unpress){
+	else if (vcount > 0) vcount--;
+
+	if (active_button == press_set || active_button == unpress){
 		if (buton_set) {
 			if (active_button == unpress) active_button = press_set;
 			if (count<RESPONSE) count++;
 		}
-		else  if (count>0) count--;
+		else  if (count > 0) count--;
 	}
 	
 	else if (active_button == press_start || active_button == unpress){
@@ -384,55 +388,55 @@ int get_button () {
 									
 void 	direction(int but) {
 	if (timer_run) {						
-		if (but == press_stop) {
-			timer_run = OFF;
-		}
+		if (but == press_stop)timer_run = OFF;
 	}
 	else {
 		if  (but == press_stop) {
-			if(setup == 2) {
+			if(setup == editing_sec) {
 				sek--;
 				if (sek<0) sek=59;
 			}											
-			else if(setup == 3){
+			else if(setup == editing_min){
 				min--;
 				if (min<0) min=59;
 			}										
-			else if(setup == 4){
+			else if(setup == editing_hour){
 				hour--;
 				if (hour<0)hour=24;
 			}
 		}													
 		else if (but == press_start){
-			if (setup == 0){
+			if (setup == ready){
 				timer_run = ON;
 				blink = ON;
 			}														
-			else if (setup == 2){
+			else if (setup == editing_sec){
 			sek++;
 				if (sek>59)sek = 0;
 			}													
-			else if (setup==3) {
+			else if (setup==editing_min) {
 			min++;
 				if (min>59)min = 0;
 			}														
-			else if(setup==4) {
+			else if(setup==editing_hour) {
 				hour++;
 				if (hour>24)hour = 0;
 			}
 	}															
 		if (but == press_set){
 			setup++;
-			if (setup ==1){
+			if (setup == read_setup){
 				read_m();
-				setup = 2;
+				setup = editing_sec;
 			}
-			else if(setup == 5){
+			else if(setup == write_setup){
 				cli();
+				if (min > 1 || hour > 0) signal_allowed = 1;
+				else signal_allowed = 0;
 				EEPROM_write(0x01, sek);
 				EEPROM_write(0x02, min);
 				EEPROM_write(0x03, hour);
-				setup = 0;
+				setup = ready;
 				sei();
 			}
 		}
