@@ -80,7 +80,6 @@ void segchar (sc seg);
 
 
 
-
 	int main (void){
 		port_ini ();
 		timer_init ();
@@ -131,7 +130,7 @@ void SPI (void) {
 		if (voltage_f) {
 			segchar(digits_numbers[digit]);
 			if (timing == 0 &&((digit == 0 && (min || hour)) || (digit == 1 && hour))){   // point blink
-						byte|=(1<<7);
+					byte|=(1<<7);
 			}
 			else if (conveer == ON && digit == CONVEER_SPI){
 					byte|=(1<<7);	
@@ -219,7 +218,6 @@ void EEPROM_WRITE (unsigned int uiAddress, sc ucData)
 	EEAR = uiAddress;
 	EEDR = ucData;
 	EECR |= (1<<EEMWE);
-	/* Start eeprom WRITE by setting EEWE */
 	EECR |= (1<<EEWE);
 }
 
@@ -245,17 +243,16 @@ void read_m (void){
 
 
 void timer_init (void){
-	TCCR2 = 0x00; //??????? ????? ?????? ???????
-	//?? 64 - 1/2 sek
+	TCCR2 = 0x00; //tick 1/2 sek
 	TCCR2 |=(1<<CS22);
-	ASSR|=(1<<AS2);  // ????????? 32???
+	ASSR|=(1<<AS2);
 	TIMSK |=(1<<TOIE2);
 }
 
 
 
 void port_ini (void){
-	//////////////////// MOSI
+	//////////////////// emulation MOSI
 	DDRD|=(1<<6); //DS
 	PORTD&=~(1<<6); //
 	DDRB|=(1<<0); //clk
@@ -267,7 +264,7 @@ void port_ini (void){
 	DDRD|=(1<<5); //OE dlia dozvolu robotu z -
 	PORTD&=~(1<<5); // -
 
-	//////////////// buttons
+	//////////////// init buttons
 	DDRC&=~(1<<2); //button SET
 	DDRC&=~(1<<3); //button  start
 	DDRC&=~(1<<4); //button pause
@@ -276,20 +273,9 @@ void port_ini (void){
 	PORTC|=(1<<2); //button SET -
 	PORTC|=(1<<3); //button  start
 	PORTC|=(1<<4); //button  start
-	PORTC|=(1<<5); //voltage
+	PORTC|=(1<<5); //voltage 
 	
-		////////// PORT LOAD
-		//DDRC|=(1<<5); //LOAD
-		//DDRD|=(1<<2); //SIGNAL
-		//DDRD|=(1<<3);  //BLINK
-	
-	
-		//conveer_off; //
-		//signal_off;//
-		//buton_blinkOff;
-	///////////////////////////
-
-	for (int x=0; x<50; x++)  //SPI function
+	for (int x=0; x<50; x++)  // clean screen and output - load
 	{
 		PORTB|=(1<<0);
 		PORTB&=~(1<<0);
