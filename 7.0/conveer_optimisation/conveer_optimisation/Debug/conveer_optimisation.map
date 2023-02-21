@@ -14,8 +14,6 @@ Discarded input sections
  .text          0x00000000        0x0 main.o
  .data          0x00000000        0x0 main.o
  .bss           0x00000000        0x0 main.o
- .bss.digits_numbers
-                0x00000000        0x6 main.o
  .avr.prop      0x00000000       0x16 main.o
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr4\libgcc.a(_exit.o)
  .data          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr4\libgcc.a(_exit.o)
@@ -191,14 +189,14 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x7a4
+.text           0x00000000      0x810
  *(.vectors)
  .vectors       0x00000000       0x26 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega8a/avr4/crtatmega8a.o
                 0x00000000                __vector_default
                 0x00000000                __vectors
  *(.vectors)
  *(.progmem.gcc*)
- .progmem.gcc_sw_table.SPI
+ .progmem.gcc_sw_table.getCharSegment
                 0x00000026       0x14 main.o
                 0x0000003a                . = ALIGN (0x2)
                 0x0000003a                __trampolines_start = .
@@ -272,40 +270,45 @@ END GROUP
                 0x00000070                __vector_18
                 0x00000072                . = ALIGN (0x2)
  *(.text.*)
- .text.SPI      0x00000072      0x10a main.o
-                0x00000072                SPI
+ .text.getCharSegment
+                0x00000072       0x44 main.o
+                0x00000072                getCharSegment
+ .text.SPI      0x000000b6       0xe4 main.o
+                0x000000b6                SPI
  .text.set_digits_numbers
-                0x0000017c      0x132 main.o
-                0x0000017c                set_digits_numbers
+                0x0000019a      0x142 main.o
+                0x0000019a                set_digits_numbers
  .text.EEPROM_WRITE
-                0x000002ae       0x18 main.o
-                0x000002ae                EEPROM_WRITE
+                0x000002dc       0x18 main.o
+                0x000002dc                EEPROM_WRITE
  .text.EEPROM_read
-                0x000002c6       0x12 main.o
-                0x000002c6                EEPROM_read
- .text.read_m   0x000002d8       0x88 main.o
-                0x000002d8                read_m
+                0x000002f4       0x12 main.o
+                0x000002f4                EEPROM_read
+ .text.read_m   0x00000306       0x8e main.o
+                0x00000306                read_m
  .text.timer_init
-                0x00000360       0x16 main.o
-                0x00000360                timer_init
+                0x00000394       0x16 main.o
+                0x00000394                timer_init
  .text.port_ini
-                0x00000376       0x96 main.o
-                0x00000376                port_ini
+                0x000003aa       0x90 main.o
+                0x000003aa                port_ini
  .text.__vector_4
-                0x0000040c      0x114 main.o
-                0x0000040c                __vector_4
+                0x0000043a      0x138 main.o
+                0x0000043a                __vector_4
  .text.get_button
-                0x00000520       0xfc main.o
-                0x00000520                get_button
- .text.control  0x0000061c      0x14a main.o
-                0x0000061c                control
- .text.main     0x00000766       0x3a main.o
-                0x00000766                main
-                0x000007a0                . = ALIGN (0x2)
+                0x00000572       0xd0 main.o
+                0x00000572                get_button
+ .text.control  0x00000642      0x16e main.o
+                0x00000642                control
+ .text.getKey   0x000007b0       0x22 main.o
+                0x000007b0                getKey
+ .text.main     0x000007d2       0x3a main.o
+                0x000007d2                main
+                0x0000080c                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000007a0        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr4\libgcc.a(_exit.o)
-                0x000007a0                _exit
-                0x000007a0                exit
+ .fini9         0x0000080c        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr4\libgcc.a(_exit.o)
+                0x0000080c                _exit
+                0x0000080c                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -324,11 +327,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000007a0        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr4\libgcc.a(_exit.o)
+ .fini0         0x0000080c        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr4\libgcc.a(_exit.o)
  *(.fini0)
-                0x000007a4                _etext = .
+                0x00000810                _etext = .
 
-.data           0x00800060        0x8 load address 0x000007a4
+.data           0x00800060        0x8 load address 0x00000810
                 0x00800060                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -345,48 +348,48 @@ END GROUP
                 0x00800068                _edata = .
                 0x00800068                PROVIDE (__data_end, .)
 
-.bss            0x00800068        0xf
+.bss            0x00800068        0xd
                 0x00800068                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
- .bss.active_button.1895
+ .bss.active_button.1898
                 0x00800068        0x1 main.o
- .bss.count.1897
-                0x00800069        0x2 main.o
- .bss.count_volt.1896
-                0x0080006b        0x2 main.o
- .bss.timing.1891
-                0x0080006d        0x1 main.o
- .bss.setup     0x0080006e        0x1 main.o
-                0x0080006e                setup
- .bss.hour      0x0080006f        0x1 main.o
-                0x0080006f                hour
- .bss.min       0x00800070        0x1 main.o
-                0x00800070                min
- .bss.sek       0x00800071        0x1 main.o
-                0x00800071                sek
+ .bss.count.1900
+                0x00800069        0x1 main.o
+ .bss.count_volt.1899
+                0x0080006a        0x1 main.o
+ .bss.timing.1894
+                0x0080006b        0x1 main.o
+ .bss.setup     0x0080006c        0x1 main.o
+                0x0080006c                setup
+ .bss.hour      0x0080006d        0x1 main.o
+                0x0080006d                hour
+ .bss.min       0x0080006e        0x1 main.o
+                0x0080006e                min
+ .bss.sek       0x0080006f        0x1 main.o
+                0x0080006f                sek
  .bss.signal_allowed
-                0x00800072        0x1 main.o
-                0x00800072                signal_allowed
+                0x00800070        0x1 main.o
+                0x00800070                signal_allowed
  .bss.timer_run
-                0x00800073        0x1 main.o
-                0x00800073                timer_run
- .bss.blink     0x00800074        0x1 main.o
-                0x00800074                blink
- .bss.signale   0x00800075        0x1 main.o
-                0x00800075                signale
- .bss.conveer   0x00800076        0x1 main.o
-                0x00800076                conveer
+                0x00800071        0x1 main.o
+                0x00800071                timer_run
+ .bss.blink     0x00800072        0x1 main.o
+                0x00800072                blink
+ .bss.signale   0x00800073        0x1 main.o
+                0x00800073                signale
+ .bss.conveer   0x00800074        0x1 main.o
+                0x00800074                conveer
  *(COMMON)
-                0x00800077                PROVIDE (__bss_end, .)
-                0x000007a4                __data_load_start = LOADADDR (.data)
-                0x000007ac                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x00800075                PROVIDE (__bss_end, .)
+                0x00000810                __data_load_start = LOADADDR (.data)
+                0x00000818                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00800077        0x0
+.noinit         0x00800075        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                PROVIDE (__noinit_end, .)
-                0x00800077                _end = .
+                0x00800075                _end = .
                 [!provide]                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
@@ -451,42 +454,42 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000       0x70
+.debug_aranges  0x00000000       0x80
  *(.debug_aranges)
  .debug_aranges
-                0x00000000       0x70 main.o
+                0x00000000       0x80 main.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000      0x9c8
+.debug_info     0x00000000      0xa5e
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0x48c C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega8a/avr4/crtatmega8a.o
- .debug_info    0x0000048c      0x53c main.o
+ .debug_info    0x0000048c      0x5d2 main.o
 
-.debug_abbrev   0x00000000      0x640
+.debug_abbrev   0x00000000      0x685
  *(.debug_abbrev)
  .debug_abbrev  0x00000000      0x44e C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega8a/avr4/crtatmega8a.o
- .debug_abbrev  0x0000044e      0x1f2 main.o
+ .debug_abbrev  0x0000044e      0x237 main.o
 
-.debug_line     0x00000000      0x9b9
+.debug_line     0x00000000      0xa80
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x10a C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega8a/avr4/crtatmega8a.o
- .debug_line    0x0000010a      0x8af main.o
+ .debug_line    0x0000010a      0x976 main.o
 
-.debug_frame    0x00000000      0x124
+.debug_frame    0x00000000      0x15c
  *(.debug_frame)
- .debug_frame   0x00000000      0x124 main.o
+ .debug_frame   0x00000000      0x15c main.o
 
-.debug_str      0x00000000      0x496
+.debug_str      0x00000000      0x4ac
  *(.debug_str)
  .debug_str     0x00000000      0x17a C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega8a/avr4/crtatmega8a.o
- .debug_str     0x0000017a      0x31c main.o
-                                0x367 (size before relaxing)
+ .debug_str     0x0000017a      0x332 main.o
+                                0x375 (size before relaxing)
 
-.debug_loc      0x00000000      0x35a
+.debug_loc      0x00000000      0x3e2
  *(.debug_loc)
- .debug_loc     0x00000000      0x35a main.o
+ .debug_loc     0x00000000      0x3e2 main.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -506,9 +509,9 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000       0x78
+.debug_ranges   0x00000000       0x88
  *(.debug_ranges)
- .debug_ranges  0x00000000       0x78 main.o
+ .debug_ranges  0x00000000       0x88 main.o
 
 .debug_macro
  *(.debug_macro)

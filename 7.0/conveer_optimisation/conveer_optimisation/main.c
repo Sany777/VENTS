@@ -6,13 +6,13 @@ int main (void)
 		port_ini ();
 		timer_init ();
 		read_m ();
-		uint8_t numbers[DIGITS_MAX]={None,None,None,None,None,None};
+		int8_t numbers[DIGITS_MAX]={None,None,None,None,None,None};
 		sei();
 
 																		
 	while (1)
-	{	
-		control(get_button());											
+	{
+		control(getKey());											
 		set_digits_numbers(numbers);
 		SPI(numbers);
 	}																		
@@ -20,28 +20,34 @@ int main (void)
 
 
 
-void SPI (uint8_t *numbers) 
+int8_t getCharSegment(int8_t n)
+{
+	switch(n)
+	{
+		case 1:  return  0b000000110; break;
+		case 2:  return  0b01011011;  break;
+		case 3:  return  0b01001111;  break;
+		case 4:  return  0b01100110;  break;
+		case 5:  return  0b01101101;  break;
+		case 6:  return  0b01111101;  break;
+		case 7:  return  0b00000111;  break;
+		case 8:  return  0b01111111;  break;
+		case 9:  return  0b01101111;  break;
+		case 0:  return  0b00111111;  break;
+		default: return  0;           break;
+	}
+}
+
+
+void SPI (int8_t *numbers) 
 {
 	cli ();
-	for (uint8_t digit = 0,byte = 0; digit<DIGITS_MAX; digit++) 
+	for (int8_t digit = 0,byte = 0; digit<DIGITS_MAX; digit++) 
 	{
 		if (voltage_f) 
 		{
-			switch(numbers[digit])
-			{
-				case 1:  byte = 0b000000110; break;
-				case 2:  byte = 0b01011011;  break;
-				case 3:  byte = 0b01001111;  break;
-				case 4:  byte = 0b01100110;  break;
-				case 5:  byte = 0b01101101;  break;
-				case 6:  byte = 0b01111101;  break;
-				case 7:  byte = 0b00000111;  break;
-				case 8:  byte = 0b01111111;  break;
-				case 9:  byte = 0b01101111;  break;
-				case 0:  byte = 0b00111111;  break;
-				default: byte = 0;           break;
-			}
-			// ---------------------------------- direction
+			byte = getCharSegment(numbers[digit]);
+			// ---------------------------------- direction load
 			switch(digit)
 			{
 				case BLINK_FIRST       : if(blink && (min || hour)) byte|=(1<<7); break;	
@@ -60,7 +66,7 @@ void SPI (uint8_t *numbers)
 			 else  byte = 0;
 		}
 		//---------------------------------- send to SPI
-			for (uint8_t c=0; c<8; c++)					  
+			for (int8_t c=0; c<8; c++)					  
 			{
 				if (byte&0x80)
 				{
@@ -82,7 +88,7 @@ void SPI (uint8_t *numbers)
 	
 
 
-void set_digits_numbers(uint8_t *numbers)
+void set_digits_numbers(int8_t *numbers)
 {
 	numbers[0]= setup == EDITING_SEC  && blink ? None : sek%10;
 	numbers[1]= setup == EDITING_SEC  && blink ? None : sek/10;
@@ -93,7 +99,7 @@ void set_digits_numbers(uint8_t *numbers)
 	
 	if (timer_run)
 	{
-		for (uint8_t digit=5; digit && numbers[digit]; digit--)
+		for (int8_t digit=5; digit && numbers[digit]; digit--)
 		{
 			numbers[digit] = None;     
 		}
@@ -105,7 +111,7 @@ void set_digits_numbers(uint8_t *numbers)
 
 
 
-void EEPROM_WRITE (uint16_t uiAddress, uint8_t ucData)
+void EEPROM_WRITE (uint16_t uiAddress, int8_t ucData)
 {
 	while (EECR&(1<<EEWE));
 	EEAR = uiAddress;
@@ -115,7 +121,7 @@ void EEPROM_WRITE (uint16_t uiAddress, uint8_t ucData)
 }
 
 
-uint8_t EEPROM_read(uint16_t uiAddress)
+int8_t EEPROM_read(uint16_t uiAddress)
 {
 	while(EECR & (1<<EEWE));
 	EEAR = uiAddress;
@@ -158,7 +164,7 @@ void port_ini (void)
 	PORTD&=~(1<<5); // -
 
 	//-------------------------- clear registers
-	for (int x=0; x<50; x++) 
+	for (int8_t x=0; x<50; x++) 
 	{
 		PORTB|=(1<<0);
 		PORTB&=~(1<<0);
@@ -183,7 +189,7 @@ void port_ini (void)
 
 ISR (TIMER2_OVF_vect)
 {
-	static uint8_t timing=0;
+	static int8_t timing=0;
 	if (voltage_f)
 	{
 		blink = !blink;
@@ -234,10 +240,10 @@ ISR (TIMER2_OVF_vect)
 			
 	
 			
-uint8_t get_button (void) 
+int8_t get_button (void) 
 {
 	static uint8_t active_button = UNPRESS;
-	static uint16_t count_volt=0, count=0;
+	static uint8_t count_volt=0, count=0;
 	if ( voltage_f != voltage_state )
 	{
 		if (count_volt<RESPONSE)
@@ -280,7 +286,7 @@ uint8_t get_button (void)
 }
 			
 									
-void control(const uint8_t but) 
+void control(const int8_t but) 
 {
 	if (timer_run) 
 	{			
@@ -355,3 +361,15 @@ void control(const uint8_t but)
 	}																		
 }
 
+int8_t getKey(void)
+{
+	uint8_t i = CICLE;
+	int8_t key=UNPRESS;
+	while(i--)
+	{
+		key = get_button();
+		if(key)return key;
+		for(uint8_t ii=0; ii<CICLE; ii++);
+	}
+	return UNPRESS;
+}
