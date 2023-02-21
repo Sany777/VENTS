@@ -12,7 +12,7 @@ int main (void)
 																		
 	while (1)
 	{
-		control(getKey());											
+		execute(getKey());											
 		set_digits_numbers(numbers);
 		SPI(numbers);
 	}																		
@@ -66,20 +66,20 @@ void SPI (int8_t *numbers)
 			 else  byte = 0;
 		}
 		//---------------------------------- send to SPI
-			for (int8_t c=0; c<8; c++)					  
+		for (int8_t c=0; c<8; c++)
+		{
+			if (byte&0x80)
 			{
-				if (byte&0x80)
-				{
-					PORTD|=(1<<6);
-				}
-				else
-				{
-					PORTD&=~(1<<6);
-				}
-				byte = (byte<<1);
-				PORTB|=(1<<0);
-				PORTB&=~(1<<0);
+				PORTD|=(1<<6);
 			}
+			else
+			{
+				PORTD&=~(1<<6);
+			}
+			byte = (byte<<1);
+			PORTB|=(1<<0);
+			PORTB&=~(1<<0);
+		}
 	}
 	PORTD|=(1<<7); 
 	PORTD&=~(1<<7);
@@ -104,11 +104,7 @@ void set_digits_numbers(int8_t *numbers)
 			numbers[digit] = None;     
 		}
 	}
-	
-	
 }
-
-
 
 
 void EEPROM_WRITE (uint16_t uiAddress, int8_t ucData)
@@ -152,16 +148,16 @@ void timer_init (void)
 void port_ini (void)
 {
 	//---------------------- program SPI : 0-6 bit - show number, 7bit - control load
-	DDRD|=(1<<6);      //DS
+	DDRD|=(1<<6);     //DS
 	PORTD&=~(1<<6);   //
 	DDRB|=(1<<0);     //clk
-	PORTB&=~(1<<0);  //
+	PORTB&=~(1<<0);   //
 	DDRD|=(1<<7);     // ST 
-	PORTD&=~(1<<7);  //
-	DDRB|=(1<<1);    //MR 
-	PORTB|=(1<<1);  // +
-	DDRD|=(1<<5);    //OE
-	PORTD&=~(1<<5); // -
+	PORTD&=~(1<<7);   //
+	DDRB|=(1<<1);     //MR 
+	PORTB|=(1<<1);    // +
+	DDRD|=(1<<5);     //OE
+	PORTD&=~(1<<5);   // -
 
 	//-------------------------- clear registers
 	for (int8_t x=0; x<50; x++) 
@@ -242,15 +238,12 @@ ISR (TIMER2_OVF_vect)
 			
 int8_t get_button (void) 
 {
-	static uint8_t active_button = UNPRESS;
-	static uint8_t count_volt=0, count=0;
-	if ( voltage_f != voltage_state )
+	static int8_t active_button = UNPRESS;
+	static int8_t count_volt=0, count=0;
+	if (voltage_f != voltage_state)
 	{
-		if (count_volt<RESPONSE)
-		{
-			count_volt++;
-		}
-		else 
+		count_volt++;
+		if (count_volt>RESPONSE)
 		{
 			voltage_f = voltage_state; 
 			count_volt = 0;
@@ -286,10 +279,10 @@ int8_t get_button (void)
 }
 			
 									
-void control(const int8_t but) 
+void execute(const int8_t but) 
 {
 	if (timer_run) 
-	{			
+	{
 		if (but == PRESS_STOP)timer_run = OFF;
 		if (signale) signale = OFF;
 		if (conveer) conveer = OFF;
@@ -363,12 +356,11 @@ void control(const int8_t but)
 
 int8_t getKey(void)
 {
-	uint8_t i = CICLE;
-	int8_t key=UNPRESS;
-	while(i--)
+	
+	for(uint8_t i = 0, key=UNPRESS; i<CICLE; i++)
 	{
 		key = get_button();
-		if(key)return key;
+		if(key!=UNPRESS)return key;
 		for(uint8_t ii=0; ii<CICLE; ii++);
 	}
 	return UNPRESS;
