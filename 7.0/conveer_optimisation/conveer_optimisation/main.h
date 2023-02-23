@@ -2,7 +2,7 @@
 #define MAIN_H_
 
 
-#define  F_CPU 1000000UL
+#define  F_CPU 4000000UL
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -16,10 +16,18 @@
 #define TRUE  1
 #define FALSE 0
 #define None 11
-#define CICLE 50
 
-//
+#define SIZE_BYTE 8
+
+#define DELAY_BUTTON 80
+#define HALF_SEC_4M 3906
+#define HALF_SEC_8M HALF_SEC_4M*2
+
 #define TO_DEC 10
+
+#define MAX_MIN_SEC 59
+#define MAX_HOUR 23
+
 #define SIGNAL_TO_LOAD_ON 10        
 #define ALLOW_MINIMUM_DELAY_TIMER 10
 #define DIGITS_MAX  6
@@ -32,12 +40,12 @@
 
 
 enum SPI_digits {
-	BLINK_FIRST,
-	BLINK_SECOND,
-	RESERV_SPI,
-	SIGNAL_SPI,
-	CONVEER_SPI,
-	BLINK_BUTTON_SPI
+	BLINK_FIRST_POINTS,
+	BLINK_SECOND_POINTS,
+	BIT_3,
+	BIT_4,
+	SIGNAL,
+	CONVEER,
 };
 
 enum Button_press {
@@ -61,29 +69,30 @@ enum Mode{
 #define  buton_set      (!(PINC&(1<<4)))
 #define  voltage_state  (!(PINC&(1<<5)))
 
+#define start_Transmision_Spi   (PORTD&=~(1<<5))
 
-volatile _Bool  
-				conveer = OFF, 
-				signale = OFF, 
-				blink = FALSE, 
-				timer_run = OFF, 
-				signal_allowed = FALSE, 
-				voltage_f = TRUE;
-					
-int8_t sek   = 0, 
-		min   = 0, 
-		hour  = 0, 
-		setup = READY;
+#define end_Transmision_Spi		PORTD|=(1<<7);\
+								PORTD&=~(1<<7);\
+
+#define send_CLK				PORTB|=(1<<0);\
+								PORTB&=~(1<<0)
+#define send_1					(PORTD|=(1<<6))
+#define send_0					(PORTD&=~(1<<6))
+
+#define active_Load				(byte|=(1<<7))
+
+
 
 
 void read_m (void);
-void SPI (int8_t *numbers) ;
-void set_digits_numbers(int8_t *numbers);
-void execute(const int8_t but);
+void send_to_SPI (uint8_t *numbers) ;
+void set_digits_numbers(uint8_t *numbers);
+void execute(const uint8_t but);
 void port_ini (void);
-void timer_init (void);
-int8_t get_button (void);
-int8_t getKey(void);
+void timer_init (uint16_t delay);
+uint8_t get_button (void);
+uint8_t getKey(void);
+
 
 
 #endif /* MAIN_H_ */
