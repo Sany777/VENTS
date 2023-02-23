@@ -12,11 +12,13 @@ uint8_t sec   = 0,
 		min   = 0,
 		hour  = 0,
 		setup = READY;
+		
+		
 
 int main (void)
 {
 		port_ini ();
-		timer_init (HALF_SEC_4M);
+		timer_init();
 		read_m ();
 		uint8_t numbers[DIGITS_MAX]={None,None,None,None,None,None};
 		sei();
@@ -145,18 +147,6 @@ void read_m (void)
 	if (min || hour) signal_allowed = TRUE;
 	else signal_allowed = FALSE;
 }
-
-
-void timer_init (uint16_t delay)
-{
-	TCCR1B |= (1<<WGM12)      // CTC mode
-	| (1<<CS12) | (1<<CS10); // /1024
-	OCR1AH = delay>>SIZE_BYTE;
-	OCR1AL = delay<<SIZE_BYTE;
-	TIMSK = (1<<TOIE1)       // Timer 1 enable
-	| (1<<OCIE1A);           // interupt compare with OCR1A
-}
-
 						
 
 
@@ -197,9 +187,32 @@ void port_ini (void)
 
 }
 
+void timer_init (void)
+{
+#ifdef QUARTZ_32768
 
+	TCCR2 = 0; //tick 1/2 sek
+	TCCR2 |=(1<<CS22);
+	ASSR|=(1<<AS2);
+	TIMSK |=(1<<TOIE2);
 
-ISR (TIMER1_COMPA_vect)
+#else
+	
+	TCCR1B |= (1<<WGM12)      // CTC mode
+	| (1<<CS12) | (1<<CS10); // /1024
+	OCR1AH = HALF_SEC_4M>>SIZE_BYTE;
+	OCR1AL = HALF_SEC_4M<<SIZE_BYTE;
+	TIMSK = (1<<TOIE1)       // Timer 1 enable
+	| (1<<OCIE1A);           // interupt compare with OCR1A
+
+#endif
+}
+
+#ifdef QUARTZ_32768
+	ISR (TIMER2_OVF_vect)
+#else 
+	ISR (TIMER1_COMPA_vect)
+#endif
 {
 	static uint8_t timing=0;
 	if (voltage_f)
@@ -215,7 +228,7 @@ ISR (TIMER1_COMPA_vect)
 				{
 					conveer = ON;
 				}
-				else if(timing == 2)
+				else if(timing == 3)
 				{
 					conveer = OFF;
 				}

@@ -1,8 +1,13 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+// --------------------- select quartz
+#ifdef QUARTZ_32768    
+	#define  F_CPU 1000000UL
+#else
+	#define  F_CPU 4000000UL
+#endif
 
-#define  F_CPU 4000000UL
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -76,12 +81,11 @@ enum Mode{
 
 #define send_CLK				PORTB|=(1<<0);\
 								PORTB&=~(1<<0)
+								
 #define send_1					(PORTD|=(1<<6))
 #define send_0					(PORTD&=~(1<<6))
 
 #define active_Load				(byte|=(1<<7))
-
-
 
 
 void read_m (void);
@@ -89,9 +93,10 @@ void send_to_SPI (uint8_t *numbers) ;
 void set_digits_numbers(uint8_t *numbers);
 void execute(const uint8_t but);
 void port_ini (void);
-void timer_init (uint16_t delay);
+void timer_init (void);
 uint8_t get_button (void);
 uint8_t getKey(void);
+void timer_init (void);
 
 
 
