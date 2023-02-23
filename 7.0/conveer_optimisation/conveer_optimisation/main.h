@@ -23,10 +23,15 @@
 #define None 11
 
 #define SIZE_BYTE 8
+#define SIZE_TIME_CUR 3
 
-#define DELAY_BUTTON 80
-#define HALF_SEC_4M 3906
+#define HALF_SEC_4M 1944
 #define HALF_SEC_8M HALF_SEC_4M*2
+
+
+#define QUARTZ HALF_SEC_4M
+
+
 
 #define TO_DEC 10
 
@@ -35,8 +40,11 @@
 
 #define SIGNAL_TO_LOAD_ON 10        
 #define ALLOW_MINIMUM_DELAY_TIMER 10
-#define DIGITS_MAX  6
-#define RESPONSE    10				// delay response button
+#define MAX_DIGITS  6
+
+
+#define DELAY_BUTTON 10000
+#define RESPONSE    2000			// delay response button
 
 //------------------------- EEPROM
 #define ADDR_SEC  1
@@ -60,13 +68,19 @@ enum Button_press {
 	PRESS_SETTING
 };
 
-enum Mode{
-	READY,
-	READ_SETUP,
+enum Mode_menu{
 	EDITING_SEC,
 	EDITING_MIN,
 	EDITING_HOUR,
-	WRITE_SETUP
+	WRITE_SETUP,
+	READY,
+	READ_SETUP,
+};
+
+enum Index_in_time_current{
+	SEC,
+	MIN,
+	HOUR
 };
 
 #define	 buton_stop		(!(PINC&(1<<2)))
@@ -89,8 +103,8 @@ enum Mode{
 
 
 void read_m (void);
-void send_to_SPI (uint8_t *numbers) ;
-void set_digits_numbers(uint8_t *numbers);
+void send_to_SPI (int8_t *numbers) ;
+void set_digits_numbers(int8_t *numbers);
 void execute(const uint8_t but);
 void port_ini (void);
 void timer_init (void);

@@ -7,34 +7,29 @@ volatile _Bool
 		timer_run = OFF,
 		signal_allowed = FALSE,
 		voltage_f = TRUE;
-		
-uint8_t sec   = 0,
-		min   = 0,
-		hour  = 0,
-		setup = READY;
-		
-		
+uint8_t	setup = READY;
+			
+int8_t time_current[SIZE_TIME_CUR];
 
 int main (void)
 {
 		port_ini ();
 		timer_init();
 		read_m ();
-		uint8_t numbers[DIGITS_MAX]={None,None,None,None,None,None};
+		int8_t numbers[MAX_DIGITS]={None,None,None,None,None,None};
 		sei();
-
-																		
+															
 	while (1)
 	{
 		send_to_SPI(numbers);
-		execute(getKey());											
+		execute(get_button());											
 		set_digits_numbers(numbers);
 	}																		
 }
 
 
 
-uint8_t getCharSegment(uint8_t n)
+int8_t getCharSegment(int8_t n)
 {
 	switch(n)
 	{
@@ -52,10 +47,10 @@ uint8_t getCharSegment(uint8_t n)
 	}
 }
 
-void send_to_SPI (uint8_t *numbers) 
+void send_to_SPI (int8_t *numbers) 
 {
-	cli ();
-	for (uint8_t digit = 0,byte = 0; digit<DIGITS_MAX; digit++) 
+	cli();
+	for (int8_t digit = 0,byte = 0; digit<MAX_DIGITS; digit++) 
 	{
 		if (voltage_f) 
 		{
@@ -63,8 +58,8 @@ void send_to_SPI (uint8_t *numbers)
 			// ---------------------------------- control load
 			switch(digit)
 			{
-				case BLINK_FIRST_POINTS  : if(timer_run == OFF || blink && (min || hour)) active_Load; break;	
-				case BLINK_SECOND_POINTS : if(timer_run == OFF || blink && hour) active_Load; break;
+				case BLINK_FIRST_POINTS  : if(timer_run == OFF || blink && (time_current[HOUR] || time_current[MIN])) active_Load; break;	
+				case BLINK_SECOND_POINTS : if(timer_run == OFF || blink && time_current[HOUR]) active_Load; break;
 				case CONVEER			 : if(conveer == ON) active_Load; break;
 				case SIGNAL				 : if(signale == ON) active_Load; break;
 				default                  : break;
@@ -99,14 +94,14 @@ void send_to_SPI (uint8_t *numbers)
 	
 
 
-void set_digits_numbers(uint8_t *numbers)
+void set_digits_numbers(int8_t *numbers)
 {
-	numbers[0]= setup == EDITING_SEC  && blink ? None : sec%10;
-	numbers[1]= setup == EDITING_SEC  && blink ? None : sec/10;
-	numbers[2]= setup == EDITING_MIN  && blink ? None : min%10;
-	numbers[3]= setup == EDITING_MIN  && blink ? None : min/10;
-	numbers[4]= setup == EDITING_HOUR && blink ? None : hour%10;
-	numbers[5]= setup == EDITING_HOUR && blink ? None : hour/10;
+	for (int8_t digit=0; digit<MAX_DIGITS; )
+	{
+		int8_t cur_time_member = digit/2;
+		 numbers[digit++] =  cur_time_member == setup && blink ? None : time_current[cur_time_member]%10;
+		 numbers[digit++] =  cur_time_member == setup && blink ? None : time_current[cur_time_member]/10;
+	}
 	
 	if (timer_run)
 	{
@@ -118,7 +113,7 @@ void set_digits_numbers(uint8_t *numbers)
 }
 
 
-void EEPROM_WRITE (uint16_t uiAddress, uint8_t ucData)
+void EEPROM_WRITE (uint16_t uiAddress, int8_t ucData)
 {
 	while (EECR&(1<<EEWE));
 	EEAR = uiAddress;
@@ -128,7 +123,7 @@ void EEPROM_WRITE (uint16_t uiAddress, uint8_t ucData)
 }
 
 
-uint8_t EEPROM_read(uint16_t uiAddress)
+int8_t EEPROM_read(uint16_t uiAddress)
 {
 	while(EECR & (1<<EEWE));
 	EEAR = uiAddress;
@@ -138,13 +133,14 @@ uint8_t EEPROM_read(uint16_t uiAddress)
 
 void read_m (void)
 {
-	sec  = EEPROM_read(ADDR_SEC);
-	min  = EEPROM_read(ADDR_MIN);
-	hour = EEPROM_read(ADDR_HOUR);
-	if(sec > MAX_MIN_SEC)sec = 0;
-	if(min > MAX_MIN_SEC)min = 25;
-	if(hour > MAX_MIN_SEC)hour = 0;
-	if (min || hour) signal_allowed = TRUE;
+	int8_t temp;
+	for(uint8_t i=0; i<SIZE_TIME_CUR; i++)
+	{
+		temp = EEPROM_read(i+ADDR_SEC);
+		if(temp > MAX_MIN_SEC || temp < 0)temp = 5;
+		time_current[i] = temp;
+	}
+	if (time_current[HOUR] || time_current[MIN]) signal_allowed = TRUE;
 	else signal_allowed = FALSE;
 }
 						
@@ -179,13 +175,13 @@ void port_ini (void)
 	PORTC|=(1<<5);
 		
 	//-------------------------- clear registers
-	for (uint8_t i=0; i<SIZE_BYTE*DIGITS_MAX; i++) 
+	for (uint8_t i=0; i<SIZE_BYTE*MAX_DIGITS; i++) 
 	{
 		send_CLK;
 	}
 	end_Transmision_Spi;
-
 }
+
 
 void timer_init (void)
 {
@@ -200,8 +196,8 @@ void timer_init (void)
 	
 	TCCR1B |= (1<<WGM12)      // CTC mode
 	| (1<<CS12) | (1<<CS10); // /1024
-	OCR1AH = HALF_SEC_4M>>SIZE_BYTE;
-	OCR1AL = HALF_SEC_4M<<SIZE_BYTE;
+	OCR1AH = (uint16_t)HALF_SEC_4M>>SIZE_BYTE;
+	OCR1AL = HALF_SEC_4M;
 	TIMSK = (1<<TOIE1)       // Timer 1 enable
 	| (1<<OCIE1A);           // interupt compare with OCR1A
 
@@ -220,9 +216,9 @@ void timer_init (void)
 		blink = !blink;
 		if (timer_run)
 		{
-			if (min==0 && hour==0 && sec == SIGNAL_TO_LOAD_ON && signal_allowed && signale == OFF) signale = ON;
-			else if (min==0 && hour==0 && sec<6) signale = OFF;
-			if (min == 0 && hour == 0 && sec == 0)
+			if (time_current[MIN]==0 && time_current[HOUR]==0 && time_current[SEC]==SIGNAL_TO_LOAD_ON && signal_allowed && signale==OFF) signale = ON;
+			else if (time_current[MIN]==0 && time_current[HOUR]==0 && time_current[SEC]<6) signale = OFF;
+			if (time_current[MIN]==0 && time_current[HOUR]==0 && time_current[SEC]==0)
 			{
 				if (timing == 0)
 				{
@@ -236,21 +232,22 @@ void timer_init (void)
 				{
 					read_m();
 					timing = 0;
-					blink = TRUE;
+					blink = FALSE;
 				}
 				timing++;
 			}
-			else if(blink) 
+			else if(blink)
 			{
-				sec--;
-				if (sec<0)
+				for(int8_t i=0; i<SIZE_TIME_CUR; i++)
 				{
-					min--;
-					sec=59;
-					if (min<0)
+					if(time_current[i] == 0)
 					{
-						hour--;
-						min=59;
+						time_current[i] = MAX_MIN_SEC;
+					}
+					else 
+					{
+						time_current[i]--;
+						break;
 					}
 				}
 			}
@@ -267,8 +264,8 @@ void timer_init (void)
 			
 uint8_t get_button (void) 
 {
-	static uint8_t active_button = UNPRESS;
-	static uint8_t count_volt=0, count=0;
+	static uint16_t active_button = UNPRESS;
+	static uint16_t count_volt=0, count_but=0;
 	if (voltage_f != voltage_state)
 	{
 		count_volt++;
@@ -278,12 +275,12 @@ uint8_t get_button (void)
 			count_volt = 0;
 		}
 	}
-	else if (count_volt > 0)
+	else if (count_volt)
 	{
 		count_volt--;
 	} 
 	
-	if(count == 0)active_button = UNPRESS;
+	if(count_but == 0)active_button = UNPRESS;
 	if(active_button == UNPRESS)
 	{
 		if(buton_set)active_button=PRESS_SETTING;
@@ -293,20 +290,20 @@ uint8_t get_button (void)
 
 	if((buton_set && active_button==PRESS_SETTING) || (buton_start && active_button==PRESS_START) || (buton_stop && active_button==PRESS_STOP))
 	{
-		if(count > RESPONSE)
+		if(count_but > RESPONSE)
 		{
-			count = 0;
+			count_but = 0;
 			return active_button;
 		}
-		count++;
+		count_but++;
 	}
-	else if(count)
+	else if(count_but)
 	{
-		count--;
+		count_but--;
 	}
 	return UNPRESS;	
 }
-			
+
 		
 void execute(const uint8_t but) 
 {
@@ -320,48 +317,8 @@ void execute(const uint8_t but)
 		}
 	}
 	else 
-	{
-		if (but == PRESS_STOP) 
-		{
-			if(setup == EDITING_SEC) 
-			{
-				sec--;
-				if (sec>MAX_MIN_SEC) sec=MAX_MIN_SEC;
-			}											
-			else if(setup == EDITING_MIN)
-			{
-				min--;
-				if (min>MAX_MIN_SEC) min=MAX_MIN_SEC;
-			}										
-			else if(setup == EDITING_HOUR)
-			{
-				hour--;
-				if (hour>MAX_HOUR)hour=MAX_HOUR;
-			}
-		}													
-		else if (but == PRESS_START)
-		{
-			if (setup == READY)
-			{
-				timer_run = ON;
-			}														
-			else if (setup == EDITING_SEC)
-			{
-				sec++;
-				if (sec>MAX_MIN_SEC)sec = 0;
-			}													
-			else if (setup==EDITING_MIN)
-			{
-				min++;
-				if (min>MAX_MIN_SEC)min = 0;
-			}														
-			else if(setup==EDITING_HOUR) 
-			{
-				hour++;
-				if (hour>MAX_HOUR)hour = 0;
-			}
-		}															
-		else if (but == PRESS_SETTING)
+	{		
+		if (but == PRESS_SETTING)
 		{
 			setup++;
 			if (setup == READ_SETUP)
@@ -372,28 +329,37 @@ void execute(const uint8_t but)
 			else if(setup >= WRITE_SETUP)
 			{
 				cli();
-				if (min || hour) signal_allowed = TRUE;
+				if (time_current[MIN] || time_current[HOUR]) signal_allowed = TRUE;
 				else signal_allowed = FALSE;
-				if(hour == 0 && min == 0 && sec < ALLOW_MINIMUM_DELAY_TIMER)sec = ALLOW_MINIMUM_DELAY_TIMER;
-				EEPROM_WRITE(ADDR_SEC, sec);
-				EEPROM_WRITE(ADDR_MIN, min);
-				EEPROM_WRITE(ADDR_HOUR, hour);
+				if(time_current[HOUR] == 0 && time_current[MIN] == 0 && time_current[SEC] < ALLOW_MINIMUM_DELAY_TIMER)time_current[SEC] = ALLOW_MINIMUM_DELAY_TIMER;
+				for(int8_t i=0; i<SIZE_TIME_CUR; i++)
+				{
+					EEPROM_WRITE(i, time_current[i]);
+				}
 				setup = READY;
 				sei();
 			}
 		}
-	}																		
-}
-
-
-uint8_t getKey(void)
-{
-	
-	for(uint8_t i = 0, key=UNPRESS; i<DELAY_BUTTON; i++)
-	{
-		key = get_button();
-		if(key != UNPRESS)return key;
-		for(uint8_t ii=0; ii<RESPONSE; ii++);
+		else
+		{
+			if (but == PRESS_STOP)
+			{
+				if(setup != READY)
+				{
+					time_current[setup] = time_current[setup] == 0 ? MAX_MIN_SEC : time_current[setup]-1;
+				}									
+			}													
+			else if (but == PRESS_START)
+			{
+				if (setup != READY)
+				{
+					time_current[setup] = time_current[setup] == MAX_MIN_SEC ? 0 : time_current[setup]+1;
+				}
+				else
+				{
+					timer_run = ON;
+				}
+			}																
+	}	
 	}
-	return UNPRESS;
 }
