@@ -1,7 +1,6 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-// --------------------- select quartz
 #ifdef QUARTZ_32768    
 	#define  F_CPU 1000000UL
 #else
@@ -14,29 +13,28 @@
 #include <util/delay.h>
 #include <avr/eeprom.h>
 
-
+//--------------------------- BASIC
 #define ON  1
 #define OFF 0
 
-#define TRUE  1
-#define FALSE 0
-#define None 11
-
-#define SIZE_BYTE 8
-
-#define DELAY_BUTTON 80
-#define HALF_SEC_4M 3906
-#define HALF_SEC_8M HALF_SEC_4M*2
-
-#define TO_DEC 10
-
+#define TRUE	 1
+#define FALSE	 0
+#define NONE	 11
 #define MAX_MIN_SEC 59
 #define MAX_HOUR 23
+#define SIZE_BYTE 8
+#define MAX_DIGITS  6
 
+//--------------------------- CONFIG
 #define SIGNAL_TO_LOAD_ON 10        
 #define ALLOW_MINIMUM_DELAY_TIMER 10
-#define DIGITS_MAX  6
-#define RESPONSE    10				// delay response button
+
+
+//--------------------------- TIMING
+#define PRESCALLER_CLK 1024
+#define TIMING_HALF_SEC   F_CPU/(PRESCALLER_CLK*2)
+#define BUTTON_DELAY      F_CPU/1700				
+
 
 //------------------------- EEPROM
 #define ADDR_SEC  1
@@ -89,13 +87,12 @@ enum Mode{
 
 
 void read_m (void);
-void send_to_SPI (uint8_t *numbers) ;
-void set_digits_numbers(uint8_t *numbers);
+void send_to_SPI (int8_t *numbers) ;
+void set_digits_numbers(int8_t *numbers);
 void execute(const uint8_t but);
 void port_ini (void);
 void timer_init (void);
 uint8_t get_button (void);
-uint8_t getKey(void);
 void timer_init (void);
 
 
