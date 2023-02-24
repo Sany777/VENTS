@@ -370,6 +370,7 @@ void send_to_SPI (int8_t *numbers)
 void set_digits_numbers(int8_t *numbers)
 {
  1ae:	fc 01       	movw	r30, r24
+	
 	numbers[0]= setup == EDITING_SEC  && blink ? NONE : sec%10;
  1b0:	80 91 68 00 	lds	r24, 0x0068	; 0x800068 <setup>
  1b4:	82 30       	cpi	r24, 0x02	; 2
@@ -502,6 +503,7 @@ void set_digits_numbers(int8_t *numbers)
  2c2:	8b e0       	ldi	r24, 0x0B	; 11
  2c4:	85 83       	std	Z+5, r24	; 0x05
 	
+	//-----------------------------delete zero
 	if (timer_run)
  2c6:	80 91 6d 00 	lds	r24, 0x006D	; 0x80006d <timer_run>
  2ca:	81 11       	cpse	r24, r1
@@ -513,9 +515,9 @@ void set_digits_numbers(int8_t *numbers)
 			numbers[digit] = NONE;     
  2d0:	9b e0       	ldi	r25, 0x0B	; 11
  2d2:	9c 93       	st	X, r25
-	numbers[4]= setup == EDITING_HOUR && blink ? NONE : hour%10;
 	numbers[5]= setup == EDITING_HOUR && blink ? NONE : hour/10;
 	
+	//-----------------------------delete zero
 	if (timer_run)
 	{
 		for (int8_t digit=5; digit && numbers[digit] == 0; digit--)
@@ -628,11 +630,11 @@ void read_m (void)
  376:	08 95       	ret
 
 00000378 <port_ini>:
+						
 
 void port_ini (void)
-{
-		
-	//---------------------- program SPI : 0-6 bit - show number, 7bit - control load
+{		
+	//---------------------- SPI : 0-6 bit - show number, 7bit - control load
 	DDRD|=(1<<6);     //DS
  378:	81 b3       	in	r24, 0x11	; 17
  37a:	80 64       	ori	r24, 0x40	; 64
@@ -675,7 +677,6 @@ void port_ini (void)
  3b2:	82 bb       	out	0x12, r24	; 18
 	
 	//----------------------------- port input
-
 	DDRC&=~(1<<2); //button SET
  3b4:	84 b3       	in	r24, 0x14	; 20
  3b6:	8b 7f       	andi	r24, 0xFB	; 251
@@ -853,9 +854,9 @@ void port_ini (void)
  4c8:	17 c0       	rjmp	.+46     	; 0x4f8 <__stack+0x99>
 			{
 				timing++;
- 4ca:	80 91 67 00 	lds	r24, 0x0067	; 0x800067 <timing.1896>
+ 4ca:	80 91 67 00 	lds	r24, 0x0067	; 0x800067 <timing.1769>
  4ce:	8f 5f       	subi	r24, 0xFF	; 255
- 4d0:	80 93 67 00 	sts	0x0067, r24	; 0x800067 <timing.1896>
+ 4d0:	80 93 67 00 	sts	0x0067, r24	; 0x800067 <timing.1769>
 				if (timing == 1)
  4d4:	81 30       	cpi	r24, 0x01	; 1
  4d6:	19 f4       	brne	.+6      	; 0x4de <__stack+0x7f>
@@ -879,7 +880,7 @@ void port_ini (void)
 					read_m();
  4ec:	16 df       	rcall	.-468    	; 0x31a <read_m>
 					timing = 0;
- 4ee:	10 92 67 00 	sts	0x0067, r1	; 0x800067 <timing.1896>
+ 4ee:	10 92 67 00 	sts	0x0067, r1	; 0x800067 <timing.1769>
 					blink = FALSE;
  4f2:	10 92 6e 00 	sts	0x006E, r1	; 0x80006e <blink>
  4f6:	21 c0       	rjmp	.+66     	; 0x53a <__stack+0xdb>
@@ -966,11 +967,11 @@ uint8_t get_button (void)
  570:	d1 f0       	breq	.+52     	; 0x5a6 <get_button+0x4a>
 	{
 		count_volt++;
- 572:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <count_volt.1901>
- 576:	90 91 66 00 	lds	r25, 0x0066	; 0x800066 <count_volt.1901+0x1>
+ 572:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <count_volt.1774>
+ 576:	90 91 66 00 	lds	r25, 0x0066	; 0x800066 <count_volt.1774+0x1>
  57a:	01 96       	adiw	r24, 0x01	; 1
- 57c:	90 93 66 00 	sts	0x0066, r25	; 0x800066 <count_volt.1901+0x1>
- 580:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <count_volt.1901>
+ 57c:	90 93 66 00 	sts	0x0066, r25	; 0x800066 <count_volt.1774+0x1>
+ 580:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <count_volt.1774>
 		if (count_volt>BUTTON_DELAY)
  584:	81 33       	cpi	r24, 0x31	; 49
  586:	99 40       	sbci	r25, 0x09	; 9
@@ -986,26 +987,26 @@ uint8_t get_button (void)
  596:	81 70       	andi	r24, 0x01	; 1
  598:	80 93 60 00 	sts	0x0060, r24	; 0x800060 <__DATA_REGION_ORIGIN__>
 			count_volt = 0;
- 59c:	10 92 66 00 	sts	0x0066, r1	; 0x800066 <count_volt.1901+0x1>
- 5a0:	10 92 65 00 	sts	0x0065, r1	; 0x800065 <count_volt.1901>
+ 59c:	10 92 66 00 	sts	0x0066, r1	; 0x800066 <count_volt.1774+0x1>
+ 5a0:	10 92 65 00 	sts	0x0065, r1	; 0x800065 <count_volt.1774>
  5a4:	0b c0       	rjmp	.+22     	; 0x5bc <get_button+0x60>
 		}
 	}
 	else if (count_volt > 0)
- 5a6:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <count_volt.1901>
- 5aa:	90 91 66 00 	lds	r25, 0x0066	; 0x800066 <count_volt.1901+0x1>
+ 5a6:	80 91 65 00 	lds	r24, 0x0065	; 0x800065 <count_volt.1774>
+ 5aa:	90 91 66 00 	lds	r25, 0x0066	; 0x800066 <count_volt.1774+0x1>
  5ae:	00 97       	sbiw	r24, 0x00	; 0
  5b0:	29 f0       	breq	.+10     	; 0x5bc <get_button+0x60>
 	{
 		count_volt--;
  5b2:	01 97       	sbiw	r24, 0x01	; 1
- 5b4:	90 93 66 00 	sts	0x0066, r25	; 0x800066 <count_volt.1901+0x1>
- 5b8:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <count_volt.1901>
+ 5b4:	90 93 66 00 	sts	0x0066, r25	; 0x800066 <count_volt.1774+0x1>
+ 5b8:	80 93 65 00 	sts	0x0065, r24	; 0x800065 <count_volt.1774>
 	} 
 	
 	if(count_but == 0)active_button = UNPRESS;
- 5bc:	80 91 63 00 	lds	r24, 0x0063	; 0x800063 <count_but.1902>
- 5c0:	90 91 64 00 	lds	r25, 0x0064	; 0x800064 <count_but.1902+0x1>
+ 5bc:	80 91 63 00 	lds	r24, 0x0063	; 0x800063 <count_but.1775>
+ 5c0:	90 91 64 00 	lds	r25, 0x0064	; 0x800064 <count_but.1775+0x1>
  5c4:	00 97       	sbiw	r24, 0x00	; 0
  5c6:	11 f4       	brne	.+4      	; 0x5cc <get_button+0x70>
  5c8:	10 92 62 00 	sts	0x0062, r1	; 0x800062 <__data_end>
@@ -1057,16 +1058,16 @@ uint8_t get_button (void)
  620:	38 f0       	brcs	.+14     	; 0x630 <get_button+0xd4>
 		{
 			count_but = 0;
- 622:	10 92 64 00 	sts	0x0064, r1	; 0x800064 <count_but.1902+0x1>
- 626:	10 92 63 00 	sts	0x0063, r1	; 0x800063 <count_but.1902>
+ 622:	10 92 64 00 	sts	0x0064, r1	; 0x800064 <count_but.1775+0x1>
+ 626:	10 92 63 00 	sts	0x0063, r1	; 0x800063 <count_but.1775>
 			return active_button;
  62a:	80 91 62 00 	lds	r24, 0x0062	; 0x800062 <__data_end>
  62e:	08 95       	ret
 		}
 		count_but++;
  630:	01 96       	adiw	r24, 0x01	; 1
- 632:	90 93 64 00 	sts	0x0064, r25	; 0x800064 <count_but.1902+0x1>
- 636:	80 93 63 00 	sts	0x0063, r24	; 0x800063 <count_but.1902>
+ 632:	90 93 64 00 	sts	0x0064, r25	; 0x800064 <count_but.1775+0x1>
+ 636:	80 93 63 00 	sts	0x0063, r24	; 0x800063 <count_but.1775>
 	}
 	else if(count_but)
 	{
@@ -1088,8 +1089,8 @@ uint8_t get_button (void)
 	{
 		count_but--;
  642:	01 97       	sbiw	r24, 0x01	; 1
- 644:	90 93 64 00 	sts	0x0064, r25	; 0x800064 <count_but.1902+0x1>
- 648:	80 93 63 00 	sts	0x0063, r24	; 0x800063 <count_but.1902>
+ 644:	90 93 64 00 	sts	0x0064, r25	; 0x800064 <count_but.1775+0x1>
+ 648:	80 93 63 00 	sts	0x0063, r24	; 0x800063 <count_but.1775>
 	}
 	return UNPRESS;	
  64c:	80 e0       	ldi	r24, 0x00	; 0

@@ -350,13 +350,13 @@ END GROUP
                 0x00800062                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
- .bss.active_button.1900
+ .bss.active_button.1773
                 0x00800062        0x1 main.o
- .bss.count_but.1902
+ .bss.count_but.1775
                 0x00800063        0x2 main.o
- .bss.count_volt.1901
+ .bss.count_volt.1774
                 0x00800065        0x2 main.o
- .bss.timing.1896
+ .bss.timing.1769
                 0x00800067        0x1 main.o
  .bss.setup     0x00800068        0x1 main.o
                 0x00800068                setup

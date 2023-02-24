@@ -4,13 +4,12 @@
 #ifdef QUARTZ_32768    
 	#define  F_CPU 1000000UL     // inverted fuses: CSEL3=1 CSEL0=1 CKOPT=0
 #else
-	#define  F_CPU 4000000UL    // inverted fuses: CSEL3=1, CSEL2=1 CKOPT=0
+	#define  F_CPU 4000000UL    // inverted fuses: CSEL3=1, CSEL2=1
 #endif
 
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 #include <avr/eeprom.h>
 
 //--------------------------- BASIC
@@ -42,7 +41,6 @@
 #define ADDR_SEC  1
 #define ADDR_MIN  2
 #define ADDR_HOUR 3
-
 
 enum SPI_digits {
 	BLINK_FIRST_POINTS,

@@ -102,6 +102,7 @@ void send_to_SPI (int8_t *numbers)
 
 void set_digits_numbers(int8_t *numbers)
 {
+	
 	numbers[0]= setup == EDITING_SEC  && blink ? NONE : sec%10;
 	numbers[1]= setup == EDITING_SEC  && blink ? NONE : sec/10;
 	numbers[2]= setup == EDITING_MIN  && blink ? NONE : min%10;
@@ -109,6 +110,7 @@ void set_digits_numbers(int8_t *numbers)
 	numbers[4]= setup == EDITING_HOUR && blink ? NONE : hour%10;
 	numbers[5]= setup == EDITING_HOUR && blink ? NONE : hour/10;
 	
+	//-----------------------------delete zero
 	if (timer_run)
 	{
 		for (int8_t digit=5; digit && numbers[digit] == 0; digit--)
@@ -150,11 +152,9 @@ void read_m (void)
 }
 						
 
-
 void port_ini (void)
-{
-		
-	//---------------------- program SPI : 0-6 bit - show number, 7bit - control load
+{		
+	//---------------------- SPI : 0-6 bit - show number, 7bit - control load
 	DDRD|=(1<<6);     //DS
 	PORTD&=~(1<<6);   // set 0
 	DDRB|=(1<<0);     //clk
@@ -167,7 +167,6 @@ void port_ini (void)
 	PORTD&=~(1<<5);   // OE enable
 	
 	//----------------------------- port input
-
 	DDRC&=~(1<<2); //button SET
 	DDRC&=~(1<<3); //button  start
 	DDRC&=~(1<<4); //button pause
