@@ -27,7 +27,7 @@
 
 //--------------------------- CONFIG
 #define TIME_SIGNAL_ON    10   
-#define SIGNAL_TIME       4
+#define SIGNAL_TIME       2
 #define TIME_SIGNAL_OFF (TIME_SIGNAL_ON-SIGNAL_TIME)
 #define MINIMUM_TIME 10
 
@@ -47,10 +47,10 @@
 enum SPI_digits {
 	BLINK_FIRST_POINTS,
 	BLINK_SECOND_POINTS,
-	BIT_3,
-	BIT_4,
-	SIGNAL,
-	CONVEER,
+	CONVEER_1,
+	CONVEER_2,
+	SIGNAL_1,
+	SIGNAL_2,
 };
 
 enum Button_press {

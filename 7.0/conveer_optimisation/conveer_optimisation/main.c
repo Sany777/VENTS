@@ -64,8 +64,10 @@ void send_to_SPI (int8_t *numbers)
 			{
 				case BLINK_FIRST_POINTS  : if(timer_run == OFF || (blink && (min || hour))) active_Load; break;	
 				case BLINK_SECOND_POINTS : if(timer_run == OFF || (blink && hour)) active_Load; break;
-				case CONVEER			 : if(conveer == ON) active_Load; break;
-				case SIGNAL				 : if(signal == ON) active_Load; break;
+				case CONVEER_1			 : 
+				case CONVEER_2			 : if(conveer == ON) active_Load; break;
+				case SIGNAL_1			 :
+				case SIGNAL_2			 : if(signal == ON) active_Load; break;
 				default                  : break;
 			}
 		}
@@ -220,14 +222,15 @@ void timer_init (void)
 		if (timer_run)
 		{
 			if (signal == OFF && min==0 && hour==0 && sec == TIME_SIGNAL_ON && signal_allowed) signal = ON;
-			else if (signal == ON && min==0 && hour==0 && sec<(TIME_SIGNAL_OFF)) signal = OFF;
+			else if (signal == ON && min==0 && hour==0 && sec<TIME_SIGNAL_OFF) signal = OFF;
 			if (min == 0 && hour == 0 && sec == 0)
 			{
-				if (timing == 0)
+				timing++;
+				if (timing == 1)
 				{
 					conveer = ON;
 				}
-				else if(timing == 3)
+				else if(timing == 4)
 				{
 					conveer = OFF;
 				}
@@ -235,9 +238,8 @@ void timer_init (void)
 				{
 					read_m();
 					timing = 0;
-					blink = TRUE;
+					blink = FALSE;
 				}
-				timing++;
 			}
 			else if(blink) 
 			{
