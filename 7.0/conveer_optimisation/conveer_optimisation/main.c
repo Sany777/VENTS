@@ -8,7 +8,7 @@ volatile _Bool
 		signal_allowed = FALSE,
 		voltage_f = TRUE;
 		
-uint8_t sec   = 0,
+int8_t  sec   = 0,
 		min   = 0,
 		hour  = 0,
 		setup = READY;
@@ -17,12 +17,11 @@ uint8_t sec   = 0,
 
 int main (void)
 {
-		port_ini ();
-		timer_init();
-		read_m ();
-		int8_t numbers_to_send[MAX_DIGITS]={NONE,NONE,NONE,NONE,NONE,NONE};
-		sei();
-
+	port_ini ();
+	timer_init();
+	read_m ();
+	int8_t numbers_to_send[MAX_DIGITS];
+	sei();
 																		
 	while (1)
 	{
@@ -38,7 +37,7 @@ int8_t getCharSegment(int8_t n)
 {
 	switch(n)
 	{
-		case 1:  return  0b00000110; break;
+		case 1:  return  0b00000110;  break;
 		case 2:  return  0b01011011;  break;
 		case 3:  return  0b01001111;  break;
 		case 4:  return  0b01100110;  break;
@@ -55,7 +54,7 @@ int8_t getCharSegment(int8_t n)
 void send_to_SPI (int8_t *numbers) 
 {
 	cli ();
-	for (uint8_t digit = 0,byte = 0; digit<MAX_DIGITS; digit++) 
+	for (int8_t digit = 0, byte = 0; digit<MAX_DIGITS; digit++) 
 	{
 		if (voltage_f) 
 		{
@@ -63,8 +62,8 @@ void send_to_SPI (int8_t *numbers)
 			// ---------------------------------- control load
 			switch(digit)
 			{
-				case BLINK_FIRST_POINTS  : if(timer_run == OFF || blink && (min || hour)) active_Load; break;	
-				case BLINK_SECOND_POINTS : if(timer_run == OFF || blink && hour) active_Load; break;
+				case BLINK_FIRST_POINTS  : if(timer_run == OFF || (blink && (min || hour))) active_Load; break;	
+				case BLINK_SECOND_POINTS : if(timer_run == OFF || (blink && hour)) active_Load; break;
 				case CONVEER			 : if(conveer == ON) active_Load; break;
 				case SIGNAL				 : if(signal == ON) active_Load; break;
 				default                  : break;
@@ -110,7 +109,7 @@ void set_digits_numbers(int8_t *numbers)
 	
 	if (timer_run)
 	{
-		for (int8_t digit=5; digit && numbers[digit]; digit--)
+		for (int8_t digit=5; digit && numbers[digit] == 0; digit--)
 		{
 			numbers[digit] = NONE;     
 		}
@@ -220,8 +219,8 @@ void timer_init (void)
 		blink = !blink;
 		if (timer_run)
 		{
-			if (min==0 && hour==0 && sec == SIGNAL_TO_LOAD_ON && signal_allowed && signal == OFF) signal = ON;
-			else if (min==0 && hour==0 && sec<6) signal = OFF;
+			if (signal == OFF && min==0 && hour==0 && sec == TIME_SIGNAL_ON && signal_allowed) signal = ON;
+			else if (signal == ON && min==0 && hour==0 && sec<(TIME_SIGNAL_OFF)) signal = OFF;
 			if (min == 0 && hour == 0 && sec == 0)
 			{
 				if (timing == 0)
@@ -264,8 +263,8 @@ void timer_init (void)
 			
 uint8_t get_button (void) 
 {
-	static uint16_t active_button = UNPRESS;
-	static uint16_t count_volt=0, count=0;
+	static uint8_t active_button = UNPRESS;
+	static uint16_t count_volt=0, count_but=0;
 	if (voltage_f != voltage_state)
 	{
 		count_volt++;
@@ -280,7 +279,7 @@ uint8_t get_button (void)
 		count_volt--;
 	} 
 	
-	if(count == 0)active_button = UNPRESS;
+	if(count_but == 0)active_button = UNPRESS;
 	if(active_button == UNPRESS)
 	{
 		if(buton_set)active_button=PRESS_SETTING;
@@ -290,16 +289,16 @@ uint8_t get_button (void)
 
 	if((buton_set && active_button==PRESS_SETTING) || (buton_start && active_button==PRESS_START) || (buton_stop && active_button==PRESS_STOP))
 	{
-		if(count > BUTTON_DELAY)
+		if(count_but > BUTTON_DELAY)
 		{
-			count = 0;
+			count_but = 0;
 			return active_button;
 		}
-		count++;
+		count_but++;
 	}
-	else if(count)
+	else if(count_but)
 	{
-		count--;
+		count_but--;
 	}
 	return UNPRESS;	
 }
@@ -330,7 +329,6 @@ void execute(const uint8_t but)
 			else if(setup == EDITING_SEC) sec = sec==MAX_MIN_SEC ? 0 : sec+1;
 			else if(setup == EDITING_MIN) min = min==MAX_MIN_SEC ? 0 : min+1;
 			else if(setup == EDITING_HOUR) hour = hour==MAX_HOUR ? 0 : hour+1;
-			
 		}															
 		else if (but == PRESS_SETTING)
 		{
@@ -345,7 +343,7 @@ void execute(const uint8_t but)
 				cli();
 				if (min || hour) signal_allowed = TRUE;
 				else signal_allowed = FALSE;
-				if(hour == 0 && min == 0 && sec < ALLOW_MINIMUM_DELAY_TIMER)sec = ALLOW_MINIMUM_DELAY_TIMER;
+				if(hour == 0 && min == 0 && sec < MINIMUM_TIME)sec = MINIMUM_TIME;
 				EEPROM_WRITE(ADDR_SEC, sec);
 				EEPROM_WRITE(ADDR_MIN, min);
 				EEPROM_WRITE(ADDR_HOUR, hour);

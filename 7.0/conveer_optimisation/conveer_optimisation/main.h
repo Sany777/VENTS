@@ -2,9 +2,9 @@
 #define MAIN_H_
 
 #ifdef QUARTZ_32768    
-	#define  F_CPU 1000000UL
+	#define  F_CPU 1000000UL     // inverted fuses: CSEL3=1 CSEL0=1 CKOPT=0
 #else
-	#define  F_CPU 4000000UL
+	#define  F_CPU 4000000UL    // inverted fuses: CSEL3=1, CSEL2=1 CKOPT=0
 #endif
 
 
@@ -26,13 +26,15 @@
 #define MAX_DIGITS  6
 
 //--------------------------- CONFIG
-#define SIGNAL_TO_LOAD_ON 10        
-#define ALLOW_MINIMUM_DELAY_TIMER 10
+#define TIME_SIGNAL_ON    10   
+#define SIGNAL_TIME       4
+#define TIME_SIGNAL_OFF (TIME_SIGNAL_ON-SIGNAL_TIME)
+#define MINIMUM_TIME 10
 
 
 //--------------------------- TIMING
-#define PRESCALLER_CLK 1024
-#define TIMING_HALF_SEC   F_CPU/(PRESCALLER_CLK*2)
+#define PRESCALLER_F_CPU   1024
+#define TIMING_HALF_SEC   ((F_CPU/(PRESCALLER_F_CPU*2))-1)
 #define BUTTON_DELAY      F_CPU/1700				
 
 
@@ -75,7 +77,7 @@ enum Mode{
 #define start_Transmision_Spi   (PORTD&=~(1<<5))
 
 #define end_Transmision_Spi		PORTD|=(1<<7);\
-								PORTD&=~(1<<7);\
+								PORTD&=~(1<<7);
 
 #define send_CLK				PORTB|=(1<<0);\
 								PORTB&=~(1<<0)
